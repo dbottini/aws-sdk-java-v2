@@ -268,7 +268,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
             int numFailures = consecutiveStaleRetrievalFailures.incrementAndGet();
 
             if (StaleValueBehavior.STRICT.equals(staleValueBehavior)) {
-                return RefreshResult.<T>builder(e).staleTime(jitterTime(now, Duration.ofMillis(1),
+                return RefreshResult.<T>exceptionally(e).staleTime(jitterTime(now, Duration.ofMillis(1),
                     maxStaleFailureJitter(numFailures))).build();
             }
 
@@ -280,7 +280,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
             switch (staleValueBehavior) {
                 case STRICT:
-                    return RefreshResult.<T>builder(e).staleTime(jitterTime(now, Duration.ofMillis(1),
+                    return RefreshResult.<T>exceptionally(e).staleTime(jitterTime(now, Duration.ofMillis(1),
                                                                             maxStaleFailureJitter(numFailures))).build();
                 case ALLOW:
                     Instant newStaleTime = jitterTime(now, Duration.ofMillis(1), maxStaleFailureJitter(numFailures));

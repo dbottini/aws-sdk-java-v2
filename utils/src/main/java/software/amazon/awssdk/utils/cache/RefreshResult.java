@@ -48,7 +48,12 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
         return new Builder<>(value, null);
     }
 
-    public static <T> Builder<T> builder(RuntimeException runtimeException) {
+    /**
+     * Get a builder for creating a {@link RefreshResult}.
+     *
+     * @param runtimeException The exception that should be cached by the supplier.
+     */
+    public static <T> Builder<T> exceptionally(RuntimeException runtimeException) {
         return new Builder<>(null, runtimeException);
     }
 

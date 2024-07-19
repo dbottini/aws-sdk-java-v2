@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "dbottini",
+    "description": "CachedSupplier now caches exceptions briefly when there is no non-stale value and the StaleValueBehavior is STRICT. This impacts ContainerCredentialsProvider, InstanceProfileCredentialsProvider, ProcessCredentialsProvider, CachedTokenRefresher, DefaultEc2MetadataClient, ProfileFileRefresher, CachedS3ExpressCredentials, SsoCredentialsProvider, and StsCredentialsProvider."
+}
