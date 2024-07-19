@@ -341,6 +341,31 @@ public class CachedSupplierTest {
             assertThatThrownBy(cachedSupplier::get).isEqualTo(e);
         }
     }
+    @Test
+    public void throwIsCachedIfValueIsStaleInStrictMode() throws InterruptedException {
+        MutableSupplier supplier = new MutableSupplier();
+        try (CachedSupplier<?> cachedSupplier = CachedSupplier.builder(supplier)
+                                                              .staleValueBehavior(STRICT)
+                                                              .build()) {
+            supplier.set(RefreshResult.builder("")
+                                      .staleTime(now())
+                                      .build());
+
+            assertThat(cachedSupplier.get()).isEqualTo("");
+
+            RuntimeException e = new RuntimeException();
+            supplier.set(e);
+
+            Thread.sleep(1001); // Wait to avoid the light rate-limiting we apply
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(e);
+
+            supplier.set(RefreshResult.builder("")
+                                      .staleTime(now())
+                                      .build());
+
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(e);
+        }
+    }
 
     @Test
     public void throwIsHiddenIfValueIsStaleInAllowMode() throws InterruptedException {

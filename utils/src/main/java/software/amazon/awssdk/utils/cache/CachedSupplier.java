@@ -261,19 +261,27 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      */
     private RefreshResult<T> handleFetchFailure(RuntimeException e) {
         log.debug(() -> "(" + cachedValueName + ") Failed to refresh cached value.", e);
+        Instant now = clock.instant();
 
         RefreshResult<T> currentCachedValue = cachedValue;
         if (currentCachedValue == null) {
+            int numFailures = consecutiveStaleRetrievalFailures.incrementAndGet();
+
+            if (StaleValueBehavior.STRICT.equals(staleValueBehavior)) {
+                return RefreshResult.<T>builder(e).staleTime(jitterTime(now, Duration.ofMillis(1),
+                    maxStaleFailureJitter(numFailures))).build();
+            }
+
             throw e;
         }
 
-        Instant now = clock.instant();
         if (!now.isBefore(currentCachedValue.staleTime())) {
             int numFailures = consecutiveStaleRetrievalFailures.incrementAndGet();
 
             switch (staleValueBehavior) {
                 case STRICT:
-                    throw e;
+                    return RefreshResult.<T>builder(e).staleTime(jitterTime(now, Duration.ofMillis(1),
+                                                                            maxStaleFailureJitter(numFailures))).build();
                 case ALLOW:
                     Instant newStaleTime = jitterTime(now, Duration.ofMillis(1), maxStaleFailureJitter(numFailures));
                     log.warn(() -> "(" + cachedValueName + ") Cached value expiration has been extended to " +

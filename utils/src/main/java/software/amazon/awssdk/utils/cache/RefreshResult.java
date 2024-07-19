@@ -28,11 +28,13 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkProtectedApi
 public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.Builder<T>, RefreshResult<T>> {
     private final T value;
+    private final RuntimeException runtimeException;
     private final Instant staleTime;
     private final Instant prefetchTime;
 
     private RefreshResult(Builder<T> builder) {
         this.value = builder.value;
+        this.runtimeException = builder.runtimeException;
         this.staleTime = builder.staleTime;
         this.prefetchTime = builder.prefetchTime;
     }
@@ -43,13 +45,20 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
      * @param value The value that should be cached by the supplier.
      */
     public static <T> Builder<T> builder(T value) {
-        return new Builder<>(value);
+        return new Builder<>(value, null);
+    }
+
+    public static <T> Builder<T> builder(RuntimeException runtimeException) {
+        return new Builder<>(null, runtimeException);
     }
 
     /**
      * The value resulting from the refresh.
      */
     public T value() {
+        if (runtimeException != null) {
+            throw runtimeException;
+        }
         return value;
     }
 
@@ -78,15 +87,18 @@ public final class RefreshResult<T> implements ToCopyableBuilder<RefreshResult.B
      */
     public static final class Builder<T> implements CopyableBuilder<Builder<T>, RefreshResult<T>> {
         private final T value;
+        private final RuntimeException runtimeException;
         private Instant staleTime = Instant.MAX;
         private Instant prefetchTime = Instant.MAX;
 
-        private Builder(T value) {
+        private Builder(T value, RuntimeException runtimeException) {
             this.value = value;
+            this.runtimeException = runtimeException;
         }
 
         private Builder(RefreshResult<T> value) {
             this.value = value.value;
+            this.runtimeException = value.runtimeException;
             this.staleTime = value.staleTime;
             this.prefetchTime = value.prefetchTime;
         }
